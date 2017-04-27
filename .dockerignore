@@ -1,0 +1,7 @@
+.git
+.dockerignore
+Dockerfile
+*.py
+glide.lock
+vendor/
+dist/
