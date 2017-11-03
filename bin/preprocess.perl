@@ -163,6 +163,10 @@ sub pretagTwitterZone {
 	my $subst = sprintf("THISISPROTECTED%.3d", $i);
 	my $tagged = "";
 	if($label eq "HASHTAG") {
+
+	    #if chinese hashtag (rare!?)
+	    #charseg
+	    $prot = charsegIfChinese($prot);
 	    
 	    #remove hash
 	    $prot =~ s/^#//;
@@ -257,6 +261,18 @@ sub mosesProcZone {
     return join(" ", @procout);
 }
 
+# Charseg if Chinese
+# this will leave non-Chinese Unicode alone
+# chinese-english MT models require this on input
+sub charsegIfChinese
+{
+    my($text) = @_;
+
+    $text =~ s/(\p{Han})/ $1 /g;
+    
+    return $text;
+}
+
 #selected guts of the moses tokenizer
 # doesn't do non-breaking yet, but should
 sub tokenize
@@ -290,6 +306,10 @@ sub tokenize
     #back if you're 
     $text =~ s/\'/ \' /g;
 
+    #If chinese chars present, charseg them
+    #so chinese MT behaves properly
+    $text = charsegIfChinese($text);
+    
     # clean up extraneous spaces
     $text =~ s/ +/ /g;
     $text =~ s/^ //g;
@@ -304,6 +324,11 @@ sub tokenize
 while (my $line = <STDIN>) {
     
     chomp($line);
+
+    #remove any newline chars
+    #this should be done in gomosesgo code -
+    #pretty sure we won't see newlines by this point...
+    $line =~ s/\n/ /g;
     
     # remove-non-printing-characters.perl
     $line = removeNonPrintingCharacters($line);
